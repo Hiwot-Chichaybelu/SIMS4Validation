@@ -1,9 +1,3 @@
-require(devtools)
-devtools::build()
-
-
-# Clear any environment variables, and cache
-datimvalidation::clearCache(force=TRUE)
 
 simsValidator <-
   function(out_dir,
