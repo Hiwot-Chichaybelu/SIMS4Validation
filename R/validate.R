@@ -8,7 +8,7 @@ datimvalidation::clearCache(force=TRUE)
 simsValidator <-
   function(out_dir,
            filename,
-           file_type,
+           type,
            idScheme,
            dataElementIdScheme,
            orgUnitIdScheme,
@@ -21,7 +21,7 @@ simsValidator <-
     file_summary["file"] <- filename
 
     # parse using regular parser, used to identify period shifts and overlapping assessments
-    d <- datimvalidation::d2Parser(file = path, file_type = file_type, dataElementIdScheme = dataElementIdScheme, orgUnitIdScheme = orgUnitIdScheme, idScheme = idScheme, invalidData = TRUE)
+    d <- datimvalidation::d2Parser(file = path, file_type = type, dataElementIdScheme = dataElementIdScheme, orgUnitIdScheme = orgUnitIdScheme, idScheme = idScheme, invalidData = TRUE)
 
     if(any(class(d) == "data.frame")){
       # no issues
