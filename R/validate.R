@@ -50,7 +50,7 @@ simsValidator <-
     #ou_map <- getOrganisationUnitMap()
     #assmt_per_ou = sqldf('select ou_map.ancestors.name as operatingUnit, count(comment) from d2 join ou_map on d2.orgUnit = ou_map.id group by ou_map.ancestors.name')
 
-    assmt_per_ou = sqldf('select orgUnit, count(distinct(comment)) from d2 group by orgUnit')
+    assmt_per_ou = sqldf::sqldf('select orgUnit, count(distinct(comment)) from d2 group by orgUnit')
     file_summary["assessment count per operating unit"] = "------"
     ou_map = vector(mode = "list")
     for(col in 1:length(assmt_per_ou$orgUnit)) {
@@ -83,7 +83,7 @@ simsValidator <-
     #  file_summary[aoc] = assmt_per_aoc[col,2]
     #}
     mech_map <- getMechanismsMap()
-    assmt_per_aoc = sqldf('select mech_map.code as attributeOptionCombo, count(distinct(d2.comment)) from d2 join mech_map on mech_map.id = d2.attributeOptionCombo group by d2.attributeOptionCombo')
+    assmt_per_aoc = sqldf::sqldf('select mech_map.code as attributeOptionCombo, count(distinct(d2.comment)) from d2 join mech_map on mech_map.id = d2.attributeOptionCombo group by d2.attributeOptionCombo')
     file_summary["assessment count per mechanism"] = "------"
     for(col in 1:length(assmt_per_aoc$attributeOptionCombo)) {
       file_summary[assmt_per_aoc[col,1]] = assmt_per_aoc[col,2]
@@ -92,38 +92,38 @@ simsValidator <-
 
     #Count of unique assessment id coversheet data element values;
     de_map <- getDataElementMap() # used to produce post-shift duplicates with codes
-    assmt_per_unique_cs_de = sqldf("select de_map.code as dataElement, count(distinct(d2.value)) from d2 join de_map on de_map.id = d2.dataElement where de_map.code = 'SIMS.CS_ASMT_ID' group by d2.dataElement")
+    assmt_per_unique_cs_de = sqldf::sqldf("select de_map.code as dataElement, count(distinct(d2.value)) from d2 join de_map on de_map.id = d2.dataElement where de_map.code = 'SIMS.CS_ASMT_ID' group by d2.dataElement")
     file_summary["assessment count per unique cs data elements"] = "------"
     for(col in 1:length(assmt_per_unique_cs_de$dataElement)) {
       file_summary[assmt_per_unique_cs_de[col,1]] = assmt_per_unique_cs_de[col,2]
     }
 
     #Count of assessment id coversheet data element values;
-    assmt_per_cs_de = sqldf("select de_map.code as dataElement, count(d2.value) from d2 join de_map on de_map.id = d2.dataElement where de_map.code = 'SIMS.CS_ASMT_ID' group by d2.dataElement")
+    assmt_per_cs_de = sqldf::sqldf("select de_map.code as dataElement, count(d2.value) from d2 join de_map on de_map.id = d2.dataElement where de_map.code = 'SIMS.CS_ASMT_ID' group by d2.dataElement")
     file_summary["assessment count per cs data elements"] = "------"
     for(col in 1:length(assmt_per_cs_de$dataElement)) {
       file_summary[paste0((assmt_per_cs_de[col,1])," ")] = assmt_per_cs_de[col,2]
     }
 
     # identify overlapping assessments, and if any write out details
-    overlapping_assessment <- sqldf('select period, orgUnit, attributeOptionCombo, count(distinct(storedby)) as assessment_count from d group by period, orgUnit, attributeOptionCombo having count(distinct(storedby)) > 1')
+    overlapping_assessment <- sqldf::sqldf('select period, orgUnit, attributeOptionCombo, count(distinct(storedby)) as assessment_count from d group by period, orgUnit, attributeOptionCombo having count(distinct(storedby)) > 1')
     if(nrow(overlapping_assessment) != 0) {
       write.csv(overlapping_assessment,file=paste0(out_dir, filename, "_overlapping_assessment.csv"))
-      overlapping_assessment_list <- sqldf('select distinct d.period, d.orgUnit, d.attributeOptionCombo, d.storedby from d join overlapping_assessment o on d.period=o.period and d.orgUnit=o.orgUnit and d.attributeOptionCombo = o.attributeOptionCombo')
+      overlapping_assessment_list <- sqldf::sqldf('select distinct d.period, d.orgUnit, d.attributeOptionCombo, d.storedby from d join overlapping_assessment o on d.period=o.period and d.orgUnit=o.orgUnit and d.attributeOptionCombo = o.attributeOptionCombo')
       write.csv(overlapping_assessment_list,file=paste0(out_dir, filename, "_overlapping_assessment_list.csv"))
     }
     file_summary["overlapping PE/OU/IM count"] = length(overlapping_assessment$period)
 
     # identify period shifts resulting from shifting assessments
-    d_unique = sqldf('select period, storedby from d group by period, storedby')
-    d2_unique = sqldf('select period, comment from d2 group by period, comment')
-    shifts_made = sqldf('select comment as assessment, d_unique.period as old_period, d2_unique.period as new_period from d_unique join d2_unique on d_unique.storedby = d2_unique.comment where d_unique.period != d2_unique.period order by old_period')
+    d_unique = sqldf::sqldf('select period, storedby from d group by period, storedby')
+    d2_unique = sqldf::sqldf('select period, comment from d2 group by period, comment')
+    shifts_made = sqldf::sqldf('select comment as assessment, d_unique.period as old_period, d2_unique.period as new_period from d_unique join d2_unique on d_unique.storedby = d2_unique.comment where d_unique.period != d2_unique.period order by old_period')
     if(nrow(shifts_made) != 0) write.csv(shifts_made,file=paste0(out_dir, filename, "_shifts_made.csv"))
     file_summary["shifted_assessment_count"] = nrow(shifts_made)
 
     # identify any exact duplicates after period shifting
     post_shift_duplicates <- getExactDuplicates(d2)
-    post_shift_duplicates_w_code <- sqldf('select de_map.code, post_shift_duplicates.* from  post_shift_duplicates left join de_map on de_map.id = post_shift_duplicates.dataElement order by dataElement, period, orgUnit, attributeOptionCombo')
+    post_shift_duplicates_w_code <- sqldf::sqldf('select de_map.code, post_shift_duplicates.* from  post_shift_duplicates left join de_map on de_map.id = post_shift_duplicates.dataElement order by dataElement, period, orgUnit, attributeOptionCombo')
     if(nrow(post_shift_duplicates_w_code) != 0) write.csv(post_shift_duplicates_w_code,file=paste0(out_dir, filename, "_post_shift_duplicates.csv"))
     file_summary["post shift duplicate count"] = length(post_shift_duplicates_w_code$comment)
 
@@ -131,7 +131,7 @@ simsValidator <-
     mechs <- checkMechanismValidity(d2)
     if(any(class(mechs) == "data.frame")){
       if(nrow(mechs) != 0){
-        mech2 <- sqldf("select mechs.*, m2.comment as assessment_id from mechs join (select distinct period, attributeOptionCombo, comment from d2) m2 on mechs.period = m2.period and mechs.attributeOptionCombo = m2.attributeOptionCombo")
+        mech2 <- sqldf::sqldf("select mechs.*, m2.comment as assessment_id from mechs join (select distinct period, attributeOptionCombo, comment from d2) m2 on mechs.period = m2.period and mechs.attributeOptionCombo = m2.attributeOptionCombo")
         write.csv(mech2,file=paste0(out_dir, filename, "_mechs.csv"))
       }
       file_summary["invalid period mechanisms"] = length(mechs$attributeOptionCombo)
@@ -155,8 +155,8 @@ simsValidator <-
         #      print("Invalid data element/org unit pairs encountered. Printing out summaries.")
         #      write.csv(invalid_orgunits, paste0(out_dir, filename, '_invalid_de_ou.csv'), na="")
 
-        invalidOUs <- sqldf('select distinct orgUnit from invalid_orgunits')
-        invalidOUAssessments <- sqldf('select comment as assessment_id, period, orgUnit from d2 where orgunit in (select orgUnit from invalidOUs) group by comment, period, orgUnit')
+        invalidOUs <- sqldf::sqldf('select distinct orgUnit from invalid_orgunits')
+        invalidOUAssessments <- sqldf::sqldf('select comment as assessment_id, period, orgUnit from d2 where orgunit in (select orgUnit from invalidOUs) group by comment, period, orgUnit')
         if(nrow(invalid_orgunits) != 0) {
           write.csv(invalid_orgunits,file=paste0(out_dir, filename, "_invalid_orgunits.csv"))
           write.csv(invalidOUAssessments,file=paste0(out_dir, filename, "_invalid_orgunit_list.csv"))
