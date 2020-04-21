@@ -1,6 +1,6 @@
 
 simsValidator <-
-  function(out_dir,
+  function(folder,
            filename,
            file_type,
            idScheme,
