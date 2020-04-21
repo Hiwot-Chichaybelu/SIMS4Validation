@@ -1,6 +1,7 @@
 
 simsValidator <-
-  function(out_dir,
+  function(data_dictionary,
+           folder,
            filename,
            file_type,
            idScheme,
@@ -108,9 +109,9 @@ simsValidator <-
     # identify overlapping assessments, and if any write out details
     overlapping_assessment <- sqldf::sqldf('select period, orgUnit, attributeOptionCombo, count(distinct(storedby)) as assessment_count from d group by period, orgUnit, attributeOptionCombo having count(distinct(storedby)) > 1')
     if(nrow(overlapping_assessment) != 0) {
-      write.csv(overlapping_assessment,file=paste0(out_dir, filename, "_overlapping_assessment.csv"))
+      write.csv(overlapping_assessment,file=paste0(folder, filename, "_overlapping_assessment.csv"))
       overlapping_assessment_list <- sqldf::sqldf('select distinct d.period, d.orgUnit, d.attributeOptionCombo, d.storedby from d join overlapping_assessment o on d.period=o.period and d.orgUnit=o.orgUnit and d.attributeOptionCombo = o.attributeOptionCombo')
-      write.csv(overlapping_assessment_list,file=paste0(out_dir, filename, "_overlapping_assessment_list.csv"))
+      write.csv(overlapping_assessment_list,file=paste0(folder, filename, "_overlapping_assessment_list.csv"))
     }
     file_summary["overlapping PE/OU/IM count"] = length(overlapping_assessment$period)
 
@@ -118,13 +119,13 @@ simsValidator <-
     d_unique = sqldf::sqldf('select period, storedby from d group by period, storedby')
     d2_unique = sqldf::sqldf('select period, comment from d2 group by period, comment')
     shifts_made = sqldf::sqldf('select comment as assessment, d_unique.period as old_period, d2_unique.period as new_period from d_unique join d2_unique on d_unique.storedby = d2_unique.comment where d_unique.period != d2_unique.period order by old_period')
-    if(nrow(shifts_made) != 0) write.csv(shifts_made,file=paste0(out_dir, filename, "_shifts_made.csv"))
+    if(nrow(shifts_made) != 0) write.csv(shifts_made,file=paste0(folder, filename, "_shifts_made.csv"))
     file_summary["shifted_assessment_count"] = nrow(shifts_made)
 
     # identify any exact duplicates after period shifting
     post_shift_duplicates <- getExactDuplicates(d2)
     post_shift_duplicates_w_code <- sqldf::sqldf('select de_map.code, post_shift_duplicates.* from  post_shift_duplicates left join de_map on de_map.id = post_shift_duplicates.dataElement order by dataElement, period, orgUnit, attributeOptionCombo')
-    if(nrow(post_shift_duplicates_w_code) != 0) write.csv(post_shift_duplicates_w_code,file=paste0(out_dir, filename, "_post_shift_duplicates.csv"))
+    if(nrow(post_shift_duplicates_w_code) != 0) write.csv(post_shift_duplicates_w_code,file=paste0(folder, filename, "_post_shift_duplicates.csv"))
     file_summary["post shift duplicate count"] = length(post_shift_duplicates_w_code$comment)
 
     # 2. verify mechanism validity
@@ -132,7 +133,7 @@ simsValidator <-
     if(any(class(mechs) == "data.frame")){
       if(nrow(mechs) != 0){
         mech2 <- sqldf::sqldf("select mechs.*, m2.comment as assessment_id from mechs join (select distinct period, attributeOptionCombo, comment from d2) m2 on mechs.period = m2.period and mechs.attributeOptionCombo = m2.attributeOptionCombo")
-        write.csv(mech2,file=paste0(out_dir, filename, "_mechs.csv"))
+        write.csv(mech2,file=paste0(folder, filename, "_mechs.csv"))
       }
       file_summary["invalid period mechanisms"] = length(mechs$attributeOptionCombo)
     } else {
@@ -142,7 +143,7 @@ simsValidator <-
     # 3. identify invalid data value types
     bad_data_values <- checkValueTypeCompliance(d2)
     if(any(class(bad_data_values) == "data.frame")){
-      if(nrow(bad_data_values) != 0) write.csv(bad_data_values,file=paste0(out_dir, filename, "_bad_data_values.csv"))
+      if(nrow(bad_data_values) != 0) write.csv(bad_data_values,file=paste0(folder, filename, "_bad_data_values.csv"))
       file_summary["bad data values"] = length(bad_data_values$dataElement)
     } else {
       file_summary["bad data values"] = 0
@@ -153,13 +154,13 @@ simsValidator <-
     if(any(class(invalid_orgunits) == "data.frame")){
       if(nrow(invalid_orgunits) > 0){
         #      print("Invalid data element/org unit pairs encountered. Printing out summaries.")
-        #      write.csv(invalid_orgunits, paste0(out_dir, filename, '_invalid_de_ou.csv'), na="")
+        #      write.csv(invalid_orgunits, paste0(folder, filename, '_invalid_de_ou.csv'), na="")
 
         invalidOUs <- sqldf::sqldf('select distinct orgUnit from invalid_orgunits')
         invalidOUAssessments <- sqldf::sqldf('select comment as assessment_id, period, orgUnit from d2 where orgunit in (select orgUnit from invalidOUs) group by comment, period, orgUnit')
         if(nrow(invalid_orgunits) != 0) {
-          write.csv(invalid_orgunits,file=paste0(out_dir, filename, "_invalid_orgunits.csv"))
-          write.csv(invalidOUAssessments,file=paste0(out_dir, filename, "_invalid_orgunit_list.csv"))
+          write.csv(invalid_orgunits,file=paste0(folder, filename, "_invalid_orgunits.csv"))
+          write.csv(invalidOUAssessments,file=paste0(folder, filename, "_invalid_orgunit_list.csv"))
         }
         file_summary["invalid org units"] = length(invalidOUs$orgUnit)
         file_summary["invalid ou assessments"] = length(invalidOUAssessments$orgUnit)
@@ -172,6 +173,7 @@ simsValidator <-
       file_summary["invalid ou assessments"] = 0
     }
 
+    incomplete_assessments <- checkCoverSheetCompleteness(data_dictionary,path)
     # write out validation summary
     write.table(as.data.frame(file_summary), file = paste0(folder, filename, "_summary.txt"))
 
