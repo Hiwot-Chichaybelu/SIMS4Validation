@@ -141,7 +141,7 @@ simsValidator <-
     }
 
     # 3. identify invalid data value types
-    bad_data_values <- checkValueTypeCompliance(d2)
+    bad_data_values <- checkValueTypeCompliance2(d2)
     if(any(class(bad_data_values) == "data.frame")){
       if(nrow(bad_data_values) != 0) write.csv(bad_data_values,file=paste0(folder, filename, "_bad_data_values.csv"))
       file_summary["bad data values"] = length(bad_data_values$dataElement)
@@ -173,11 +173,17 @@ simsValidator <-
       file_summary["invalid ou assessments"] = 0
     }
 
-    incomplete_assessments <- checkCoverSheetCompleteness(data_dictionary,path)
+    #incomplete_assessments <- checkCoverSheetCompleteness(data_dictionary,path)
     # write out validation summary
     write.table(as.data.frame(file_summary), file = paste0(folder, filename, "_summary.txt"))
 
     # write out normalized data - data has periods shifter for overlapping assessments, and has metadata in UID format. In case of any overlapping assessments in the input file, normalized file should be used for import into DATIM
     write.csv(d2[, c("dataElement","period","orgUnit","categoryOptionCombo","attributeOptionCombo","value", "storedby", "timestamp", "comment")], paste0(folder, filename, "_normalized.csv"), row.names=FALSE, na="")
 
+    # to use in CEE validity check
+    if(any(class(bad_data_values) == "data.frame")){
+      if(nrow(bad_data_values) != 0) return(bad_data_values)
+    } else {
+      return(NULL)
+    }
   }
