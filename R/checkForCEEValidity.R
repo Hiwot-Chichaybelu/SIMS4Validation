@@ -32,12 +32,12 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
             if(length(assmt) > 0){
               for(row in 1:length(bad_data_values)){
                 if(bad_data_values[row,8] %in% c(names(data_elements_by_assessment)[i])){
-                  d = rbind(d, data.frame('Invalid Data'=bad_data_values[row,1], value=bad_data_values[row,6], Assessment=names(data_elements_by_assessment)[i]))
+                  d = rbind(d, data.frame('Invalid Data'= 'Wrong data type', value=bad_data_values[row,6], Assessment=names(data_elements_by_assessment)[i]))
                   dataElement <- de_map[[bad_data_values[row,2]]]
                   period <- bad_data_values[row,2]
                   orgUnit <- bad_data_values[row,3]
                   coc <- bad_data_values[row,4]
-                  aoc < bad_data_values[row,5]
+                  aoc <- bad_data_values[row,5]
                   comment <- bad_data_values[row,8]
                   #remove CEE
                   data_elements <- data_elements[!(data_elements[,1] == dataElement && data_elements[,2] == period && data_elements[,3] == orgUnit && data_elements[,4] == coc && data_elements[,5] == aoc && data_elements[,7] == comment),]
@@ -66,6 +66,7 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
             }
           }
         }
+      }
       }
     }
     # if dataElementIdScheme = id
@@ -107,7 +108,7 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
         if(length(assmt) > 0){
           for(row in 1:length(bad_data_values)){
             if(bad_data_values[row,8] %in% c(names(data_elements_by_assessment)[i])){
-              d = rbind(d, data.frame('Invalid Data'=bad_data_values[row,1], value=bad_data_values[row,6], Assessment=names(data_elements_by_assessment)[i]))
+              d = rbind(d, data.frame('Invalid Data'='Wrong data type', value=bad_data_values[row,6], Assessment=names(data_elements_by_assessment)[i]))
               dataElement <- bad_data_values[row,2]
               period <- bad_data_values[row,2]
               orgUnit <- bad_data_values[row,3]
@@ -156,7 +157,7 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
       }
     }
     }
-  }
+}
   write.csv(data_elements, paste0(folder, "_assessmentRemoved.csv"), row.names=FALSE, na="")
   return(d)
 
