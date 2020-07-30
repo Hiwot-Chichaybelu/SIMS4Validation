@@ -1,4 +1,4 @@
-checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, bad_data_values){
+checkForCEEValidity <- function(folder,fileHasHeader, de_map, bad_data_values, remove){
 
   #data elements in file to validate
   data_elements <- read.csv(folder, header = fileHasHeader)
@@ -15,7 +15,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
       if(length(site_CEE) < 1 && length(abovesite_CEE) < 1){
           d = rbind(d, data.frame('Invalid Data'='No CEEs', value='N/A', Assessment=names(data_elements_by_assessment)[i]))
           #remove assessment
-          data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
+          if(remove)
+            data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
       }
       else{
         #check for presence of SCORE
@@ -23,7 +24,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
         if(length(score_DEs) < 1){
           d = rbind(d, data.frame('Invalid Data'='SCORE Missing', value='N/A', Assessment=names(data_elements_by_assessment)[i]))
           #remove assessment
-          data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
+          if(remove)
+            data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
         }
         #check for validity of values
         else{
@@ -40,7 +42,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
                   aoc <- bad_data_values[row,5]
                   comment <- bad_data_values[row,8]
                   #remove CEE
-                  data_elements <- data_elements[!(data_elements[,1] == dataElement && data_elements[,2] == period && data_elements[,3] == orgUnit && data_elements[,4] == coc && data_elements[,5] == aoc && data_elements[,7] == comment),]
+                  if(remove)
+                    data_elements <- data_elements[!(data_elements[,1] == dataElement && data_elements[,2] == period && data_elements[,3] == orgUnit && data_elements[,4] == coc && data_elements[,5] == aoc && data_elements[,7] == comment),]
                 }
               }
               # check whether all remaining CEEs are valid or remove assessment
@@ -52,7 +55,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
                 if(length(site_CEE) < 1 && length(abovesite_CEE) < 1){
                   d = rbind(d, data.frame('Invalid Data'='No CEEs', value='N/A', Assessment=names(data_elements_by_assessment2)[i]))
                   #remove assessment
-                  data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
+                  if(remove)
+                    data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
                 }
                 else{
                   #check for presence of SCORE
@@ -60,7 +64,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
                   if(length(score_DEs) < 1){
                     d = rbind(d, data.frame('Invalid Data'='SCORE Missing', value='N/A', Assessment=names(data_elements_by_assessment2)[i]))
                     #remove assessment
-                    data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
+                    if(remove)
+                      data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
                   }
               }
             }
@@ -83,7 +88,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
       if(length(CEEs) < 1){
         d = rbind(d, data.frame('Invalid Data'='No CEEs', value='N/A', Assessment=names(data_elements_by_assessment)[i]))
         #remove assessment
-        data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
+        if(remove)
+          data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
       }
       else{
       #check for presence of SCORE
@@ -99,7 +105,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
     if(length(score_DEs) < 1){
       d = rbind(d, data.frame('Invalid Data'='SCORE Missing', value='N/A', Assessment=names(data_elements_by_assessment)[i]))
       #remove assessment
-      data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
+      if(remove)
+        data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
     }
     #check for validity of values
     else{
@@ -116,7 +123,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
               aoc < bad_data_values[row,5]
               comment <- bad_data_values[row,8]
               #remove CEE
-              data_elements <- data_elements[!(data_elements[,1] == dataElement && data_elements[,2] == period && data_elements[,3] == orgUnit && data_elements[,4] == coc && data_elements[,5] == aoc && data_elements[,7] == comment),]
+              if(remove)
+                data_elements <- data_elements[!(data_elements[,1] == dataElement && data_elements[,2] == period && data_elements[,3] == orgUnit && data_elements[,4] == coc && data_elements[,5] == aoc && data_elements[,7] == comment),]
               }
           }
           # check whether all remaining CEEs are valid or remove assessment
@@ -134,7 +142,8 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
             if(length(CEEs) < 1){
               d = rbind(d, data.frame('Invalid Data'='No CEEs', value='N/A', Assessment=names(data_elements_by_assessment2)[i]))
               #remove assessment
-              data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
+              if(remove)
+                data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
             }
             else{
               #check for presence of SCORE
@@ -150,15 +159,17 @@ checkForCEEValidity <- function(data_dictionary,folder,fileHasHeader, de_map, ba
             if(length(score_DEs) < 1){
               d = rbind(d, data.frame('Invalid Data'='SCORE Missing', value='N/A', Assessment=names(data_elements_by_assessment2)[i]))
               #remove assessment
-              data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
+              if(remove)
+                data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment2)[i],]
             }
           }
         }
       }
     }
     }
-}
-  write.csv(data_elements, paste0(folder, "_assessmentRemoved.csv"), row.names=FALSE, na="")
+  }
+  if(remove)
+    write.csv(data_elements, paste0(folder, "_assessmentRemoved.csv"), row.names=FALSE, na="")
   return(d)
 
 }

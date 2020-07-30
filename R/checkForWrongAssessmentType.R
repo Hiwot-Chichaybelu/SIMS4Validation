@@ -1,9 +1,4 @@
-checkForWrongAssessmentType <- function(data_dictionary,folder,fileHasHeader,de_map){
-  #cover sheet data elements in data dictionary
-  data_dictionary_CS_data_elements <- readxl::read_excel(path = data_dictionary, sheet = "Coversheet",range = "D1:D38")
-  data_dictionary_CS_data_elements <- data_dictionary_CS_data_elements[!(data_dictionary_CS_data_elements$`DATA POINT ID - 4.0`=='Inherent to DATIM'),]
-
-  data_dictionary_CS_data_elements <- as.list(data_dictionary_CS_data_elements$`DATA POINT ID - 4.0`)
+checkForWrongAssessmentType <- function(folder,fileHasHeader,de_map,remove){
 
   #data elements in file to validate
   data_elements <- read.csv(folder, header = fileHasHeader)
@@ -37,7 +32,8 @@ checkForWrongAssessmentType <- function(data_dictionary,folder,fileHasHeader,de_
         for(j in list_of_AS){
           d = rbind(d, data.frame('CEE of wrong tool type'=j, Assessment=names(data_elements_by_assessment)[i]))
           #remove assessment
-          data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
+          if(remove)
+            data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
         }
       }
     }
@@ -61,11 +57,13 @@ checkForWrongAssessmentType <- function(data_dictionary,folder,fileHasHeader,de_
         for(j in list_of_S){
           d = rbind(d, data.frame('CEE of wrong tool type'=j, Assessment=names(data_elements_by_assessment)[i]))
           #remove assessment
-          data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
+          if(remove)
+            data_elements <- data_elements[data_elements[,7] != names(data_elements_by_assessment)[i],]
         }
       }
     }
   }
-  write.csv(data_elements, paste0(folder, "_assessmentRemoved.csv"), row.names=FALSE, na="")
+  if(remove)
+    write.csv(data_elements, paste0(folder, "_assessmentRemoved.csv"), row.names=FALSE, na="")
   return (d)
 }
