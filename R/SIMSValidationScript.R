@@ -1,4 +1,4 @@
-SIMSValidationScript <- function(out_dir,filename,file_type,idScheme,dataElementIdScheme,orgUnitIdScheme,isoPeriod,fileHasHeader,remove, secrets){
+SIMSValidationScript <- function(out_dir,filename,file_type,idScheme,dataElementIdScheme,orgUnitIdScheme,isoPeriod,fileHasHeader,remove,secrets){
 require(datimvalidation)
 
 datimvalidation::loadSecrets(secrets)
