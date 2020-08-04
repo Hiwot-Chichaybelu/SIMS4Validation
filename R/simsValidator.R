@@ -8,6 +8,8 @@ simsValidator <-
            orgUnitIdScheme,
            isoPeriod,
            fileHasHeader) {
+    require(datimvalidation)
+
     dataSets <- c("O392zMXtwar", "rnEToFucnJ9")
     path <- paste0(folder, filename)
 

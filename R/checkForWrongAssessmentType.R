@@ -1,4 +1,5 @@
 checkForWrongAssessmentType <- function(folder,fileHasHeader,de_map,remove){
+  require(datimvalidation)
 
   #data elements in file to validate
   data_elements <- read.csv(folder, header = fileHasHeader)

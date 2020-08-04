@@ -1,8 +1,11 @@
-SIMSValidationScript <- function(out_dir,filename,file_type,idScheme,dataElementIdScheme,orgUnitIdScheme,isoPeriod,fileHasHeader,remove){
+SIMSValidationScript <- function(out_dir,filename,file_type,idScheme,dataElementIdScheme,orgUnitIdScheme,isoPeriod,fileHasHeader,remove, secrets){
+require(datimvalidation)
+
+datimvalidation::loadSecrets(secrets)
 
 bad_data_values <- SIMS4Validation::simsValidator(out_dir,filename,file_type,idScheme,dataElementIdScheme,orgUnitIdScheme,isoPeriod,fileHasHeader)
 
-path <- paste0(folder, filename)
+path <- paste0(out_dir, filename)
 
 #if dataElementIdScheme is id, construct map of data element ID and name
 de_map = vector(mode = "list")
@@ -24,7 +27,7 @@ if(dataElementIdScheme %in% c("id")){
 
 incomplete_CS <- SIMS4Validation::checkCoverSheetCompleteness(path,fileHasHeader,de_map,remove)
 if(!is.null(incomplete_CS) && nrow(incomplete_CS) != 0) {
-  write.csv(incomplete_CS,file=paste0(folder, filename, "_incomplete_CS.csv"))
+  write.csv(incomplete_CS,file=paste0(out_dir, filename, "_incomplete_CS.csv"))
 }
 
 
@@ -34,11 +37,11 @@ if(file.exists(paste0(path, "_assessmentRemoved.csv"))){
 
 wrongType <- SIMS4Validation::checkForWrongAssessmentType(path,fileHasHeader,de_map,remove)
 if(!is.null(wrongType) && nrow(wrongType) != 0) {
-  write.csv(wrongType,file=paste0(folder, filename, "_wrongToolType.csv"))
+  write.csv(wrongType,file=paste0(out_dir, filename, "_wrongToolType.csv"))
 }
 
 inValidCEE <- SIMS4Validation::checkForCEEValidity(path,fileHasHeader,de_map,bad_data_values,remove)
 if(!is.null(inValidCEE) && nrow(inValidCEE) != 0) {
-  write.csv(inValidCEE,file=paste0(folder, filename, "_inValidCEE.csv"))
+  write.csv(inValidCEE,file=paste0(out_dir, filename, "_inValidCEE.csv"))
 }
 }
