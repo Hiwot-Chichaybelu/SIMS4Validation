@@ -3,6 +3,9 @@ checkForWrongAssessmentType <- function(folder,fileHasHeader,de_map,remove){
 
   #data elements in file to validate
   data_elements <- read.csv(folder, header = fileHasHeader)
+  if(nrow(data_elements) == 0)
+    return(NULL)
+
   data_elements_by_assessment<-split(data_elements, data_elements[,7])
   d = NULL
 
@@ -10,6 +13,7 @@ checkForWrongAssessmentType <- function(folder,fileHasHeader,de_map,remove){
     list_of_S <- vector("list")
     list_of_AS <- vector("list")
     index <- 1
+
 
     tool_type <- subset(data_elements_by_assessment[[i]], (data_elements_by_assessment[[i]][,1] %in% c('SIMS.CS_ASMT_TOOL_TYPE')))
     #Site assessment

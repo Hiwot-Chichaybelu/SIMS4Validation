@@ -2,6 +2,8 @@ checkForCEEValidity <- function(folder,fileHasHeader, de_map, bad_data_values, r
 
   #data elements in file to validate
   data_elements <- read.csv(folder, header = fileHasHeader)
+  if(nrow(data_elements) == 0)
+    return(NULL)
 
   data_elements_by_assessment<-split(data_elements, data_elements[,7])
   d = NULL
